@@ -127,6 +127,8 @@ def end_screen(win):
         else:
             WIN.blit(DEFEAT_TEXT, DEF_TEXT_RECT)
 
+        pg.display.update()
+
         
 
 def main(player, key, grid):
