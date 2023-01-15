@@ -10,7 +10,6 @@ class Grid(BaseModel):
     data: list[list[int]]
 
 
-
 @app.get("/initialize")
 async def initialize(key: int = -1):
 
