@@ -23,7 +23,7 @@ BUTTON_2_IMAGE = pg.image.load(os.path.join('resources', 'Color-Green.jpeg'))
 BUTTON_2 = pg.transform.scale(BUTTON_2_IMAGE, (BUTTON_WIDTH, BUTTON_HEIGHT) )
 
 
-MENU_BG_IMAGE = pg.image.load(os.path.join('resources', 'menu_BG.jpeg'))
+MENU_BG_IMAGE = pg.image.load(os.path.join('resources', 'dark_grey_image.jpeg'))
 MENU_BG = pg.transform.scale(MENU_BG_IMAGE, (WIDTH, HEIGHT))
 
 WHITE = (255, 255, 255)
@@ -39,9 +39,17 @@ GUEST_BUTTON = Button(BUTTON , pos = [(WIDTH/2), 500], text_input = "GUEST", fon
 INPUT_BUTTON = Button(BUTTON , pos = [(WIDTH/2), 560], text_input = "", font = SCORE_FONT, base_color = WHITE, hovering_color = PURPLE)
 SUBMIT_BUTTON = Button(BUTTON , pos = [(WIDTH*2/3), 100], text_input = "SUBMIT FORMATION", font = SCORE_FONT, base_color = WHITE, hovering_color = PURPLE)
 FIRE_BUTTON = Button(BUTTON , pos = [100, 100], text_input = "FIRE", font = SCORE_FONT, base_color = WHITE, hovering_color = PURPLE)
+QUIT_BUTTON = Button(BUTTON , pos = [(WIDTH/2), 500], text_input = "QUIT", font = SCORE_FONT, base_color = WHITE, hovering_color = PURPLE)
+
+VICTORY_TEXT = SCORE_FONT.render("VICTORY!", True, BLUE, WHITE)
+DEFEAT_TEXT = SCORE_FONT.render("DEFEAT!", True, BLUE, WHITE)
+WAITING_TEXT = SCORE_FONT.render("Waiting for opponent", True, BLUE, WHITE)
+
+VIC_TEXT_RECT = VICTORY_TEXT.get_rect()
+DEF_TEXT_RECT = DEFEAT_TEXT.get_rect()
+WAIT_TEXT_RECT = WAITING_TEXT.get_rect()
 
 grid = [[0 for _ in range(20)] for _ in range(10)]
-
 
 
 
@@ -97,7 +105,29 @@ def draw_setup(grid, available_ships, MENU_MOUSE_POS):
             pg.draw.rect(WIN, colour, pg.Rect((j*120) + 10, 120*i + 210, 100, 100))
 
 
+def end_screen(win):
+    
+    while True:
 
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pg.quit()
+
+        MENU_MOUSE_POS = pg.mouse.get_pos()
+
+        WIN.blit(MENU_BG, (0, 0))
+        QUIT_BUTTON.changeColor(MENU_MOUSE_POS)
+        QUIT_BUTTON.update(WIN)
+
+        if win:
+            WIN.blit(VICTORY_TEXT, VIC_TEXT_RECT)
+        else:
+            WIN.blit(DEFEAT_TEXT, DEF_TEXT_RECT)
+
+        
 
 def main(player, key, grid):
     enemy_grid = [[0 for _ in range(20)] for _ in range(10)]
@@ -126,7 +156,7 @@ def main(player, key, grid):
                     if FIRE_BUTTON.checkForInput(MENU_MOUSE_POS) and pressed != (-1, -1):
                         r = api.fire(player, key, pressed)
                         if r.json()["end"]:
-                            pg.quit()
+                            end_screen(True)
                         enemy_grid[pressed[1]][pressed[0]] = 2 if r.json()["message"] else 3
                         turn = 1 if turn == 2 else 2
 
@@ -158,7 +188,7 @@ def main(player, key, grid):
                 previous_target =  (r.json()["previous_x"], r.json()["previous_y"])
                 turn = r.json()["state"]
                 if turn == 3:
-                    pg.quit()
+                    end_screen(False)
 
                 if turn == player:
                     position = grid[previous_target[1]][previous_target[0]]
@@ -167,6 +197,7 @@ def main(player, key, grid):
 
 
             else:
+                WIN.blit(WAITING_TEXT, WAIT_TEXT_RECT)
                 pg.time.delay(1000)
                 pg.display.update()
                 continue
@@ -198,10 +229,12 @@ def setup(player, key, grid):
                 if r.json()["message"] == "begin":
                     main(player, key, grid)
                 else:
+                    WIN.blit(WAITING_TEXT, WAIT_TEXT_RECT)
                     pg.time.delay(1000)
                     pg.display.update()
                     continue
             else:
+                WIN.blit(WAITING_TEXT, WAIT_TEXT_RECT)
                 pg.time.delay(1000)
                 pg.display.update()
                 continue
